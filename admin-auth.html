@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل دخول المشرفين - Elite Investors</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="supabase-config.js"></script>
+    <style>
+        :root {
+            --primary: #7c3aed;
+            --secondary: #06b6d4;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #0f172a;
+            --light: #f8fafc;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tajawal', 'Arial', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .auth-container {
+            background: rgba(30, 41, 59, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            border: 2px solid var(--primary);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .logo i {
+            font-size: 60px;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+        
+        .logo h1 {
+            color: white;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        
+        .logo p {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #cbd5e1;
+            font-weight: 500;
+            font-size: 15px;
+        }
+        
+        .input-group {
+            display: flex;
+            align-items: center;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(124,58,237,0.3);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        
+        .input-group:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
+        }
+        
+        .input-group i {
+            width: 50px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 18px;
+        }
+        
+        .input-group input {
+            flex: 1;
+            padding: 15px 15px 15px 0;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 16px;
+            direction: rtl;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+        }
+        
+        .input-group input::placeholder {
+            color: #64748b;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary), #6d28d9);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(124,58,237,0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .error-message {
+            background: rgba(239,68,68,0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .error-message i {
+            font-size: 18px;
+        }
+        
+        .security-note {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(6,182,212,0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(6,182,212,0.3);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .security-note i {
+            font-size: 24px;
+            color: var(--secondary);
+        }
+        
+        .security-note p {
+            color: #cbd5e1;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 25px;
+            color: #94a3b8;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .back-link:hover {
+            color: var(--primary);
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="logo">
+            <i class="fas fa-shield-alt"></i>
+            <h1>لوحة الإدارة</h1>
+            <p>Elite Investors - Admin Panel</p>
+        </div>
+        
+        <div class="error-message" id="errorMessage">
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="errorText"></span>
+        </div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label>👤 البريد الإلكتروني</label>
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="email" placeholder="admin@elite-investors.com" required autocomplete="email">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>🔑 كلمة المرور</label>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password">
+                </div>
+            </div>
+            
+            <button type="submit" class="btn" id="loginBtn">
+                <i class="fas fa-sign-in-alt"></i>
+                <span id="btnText">تسجيل الدخول</span>
+            </button>
+        </form>
+        
+        <div class="security-note">
+            <i class="fas fa-shield-alt"></i>
+            <p>
+                هذه الصفحة مخصصة للمشرفين فقط. جميع المحاولات غير المصرح بها يتم تسجيلها ومراقبتها.
+            </p>
+        </div>
+        
+        <a href="index.html" class="back-link">
+            <i class="fas fa-arrow-right"></i> العودة للموقع الرئيسي
+        </a>
+    </div>
+    
+    <script>
+        // ==================== نظام تسجيل دخول المشرفين ====================
+        
+        let loginAttempts = 0
+        let lastAttemptTime = 0
+        
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault()
+            
+            const email = document.getElementById('email').value.trim()
+            const password = document.getElementById('password').value
+            const errorDiv = document.getElementById('errorMessage')
+            const errorText = document.getElementById('errorText')
+            const loginBtn = document.getElementById('loginBtn')
+            const btnText = document.getElementById('btnText')
+            
+            // التحقق من محاولات تسجيل الدخول
+            const now = Date.now()
+            if (now - lastAttemptTime < 5000 && loginAttempts >= 3) {
+                errorDiv.style.display = 'flex'
+                errorText.textContent = 'محاولات كثيرة. الرجاء الانتظار 5 ثواني'
+                return
+            }
+            
+            if (!email || !password) {
+                errorDiv.style.display = 'flex'
+                errorText.textContent = 'يرجى إدخال البريد الإلكتروني وكلمة المرور'
+                return
+            }
+            
+            // تغيير حالة الزر
+            loginBtn.disabled = true
+            btnText.innerHTML = '<span class="loading-spinner"></span> جاري التحقق...'
+            
+            try {
+                // محاولة تسجيل الدخول
+                const result = await window.SupabaseClient.auth.signIn(email, password)
+                
+                if (result.success) {
+                    // التحقق من صلاحية المشرف
+                    const adminCheck = await window.SupabaseClient.auth.checkAdminAccess()
+                    
+                    if (adminCheck.success && adminCheck.isAdmin) {
+                        // تسجيل الدخول ناجح
+                        errorDiv.style.display = 'none'
+                        
+                        // حفظ الجلسة
+                        localStorage.setItem('admin_session', JSON.stringify({
+                            user: result.data.user,
+                            timestamp: Date.now()
+                        }))
+                        
+                        // رسالة نجاح ثم توجيه
+                        btnText.textContent = '✅ تم التحقق... جاري التوجيه'
+                        
+                        setTimeout(() => {
+                            window.location.href = 'admin.html'
+                        }, 1000)
+                    } else {
+                        // ليس مشرفاً
+                        await window.SupabaseClient.auth.signOut()
+                        
+                        errorDiv.style.display = 'flex'
+                        errorText.textContent = 'ليس لديك صلاحية الوصول إلى لوحة الإدارة'
+                        loginAttempts++
+                        lastAttemptTime = Date.now()
+                        
+                        loginBtn.disabled = false
+                        btnText.textContent = 'تسجيل الدخول'
+                    }
+                } else {
+                    // فشل تسجيل الدخول
+                    errorDiv.style.display = 'flex'
+                    errorText.textContent = result.error || 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
+                    loginAttempts++
+                    lastAttemptTime = Date.now()
+                    
+                    loginBtn.disabled = false
+                    btnText.textContent = 'تسجيل الدخول'
+                }
+            } catch (error) {
+                errorDiv.style.display = 'flex'
+                errorText.textContent = 'حدث خطأ في الاتصال. الرجاء المحاولة مرة أخرى'
+                loginBtn.disabled = false
+                btnText.textContent = 'تسجيل الدخول'
+            }
+        })
+        
+        // التحقق من جلسة سابقة
+        (async function checkExistingSession() {
+            const session = localStorage.getItem('admin_session')
+            if (session) {
+                try {
+                    const { user } = JSON.parse(session)
+                    if (user && Date.now() - user.timestamp < 3600000) { // ساعة واحدة
+                        const adminCheck = await window.SupabaseClient.auth.checkAdminAccess()
+                        if (adminCheck.success && adminCheck.isAdmin) {
+                            window.location.href = 'admin.html'
+                        }
+                    }
+                } catch (e) {
+                    localStorage.removeItem('admin_session')
+                }
+            }
+        })()
+    </script>
+</body>
+</html>

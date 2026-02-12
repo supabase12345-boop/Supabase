@@ -1,0 +1,2106 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="shared-data.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>لوحة التحكم - Elite Investors</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #7c3aed;
+            --secondary: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --purple: #8b5cf6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Tajawal', 'Arial', sans-serif;
+            background: var(--dark);
+            color: white;
+            padding-bottom: 80px;
+        }
+        
+        /* ========== شاشة التحميل ========== */
+        .dashboard-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .loader-spinner {
+            width: 70px;
+            height: 70px;
+            border: 5px solid rgba(124,58,237,0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+        
+        .loader-text {
+            color: white;
+            font-size: 20px;
+            font-weight: 500;
+        }
+        
+        .loader-subtext {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* ========== شاشة تسجيل الدخول ========== */
+        .auth-required {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            flex-direction: column;
+            gap: 20px;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .auth-icon {
+            font-size: 100px;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        
+        .auth-title {
+            color: white;
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .auth-message {
+            color: #94a3b8;
+            font-size: 18px;
+            max-width: 600px;
+            margin-bottom: 30px;
+            line-height: 1.8;
+        }
+        
+        .auth-btn {
+            background: linear-gradient(135deg, var(--primary), #6d28d9);
+            color: white;
+            padding: 16px 48px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 18px;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .auth-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(124,58,237,0.5);
+        }
+        
+        /* ========== الهيدر ========== */
+        .dashboard-header {
+            background: rgba(15, 23, 42, 0.95);
+            padding: 15px 20px;
+            border-bottom: 2px solid var(--primary);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 4px 10px rgba(124,58,237,0.3);
+        }
+        
+        .user-status {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background: var(--success);
+            border-radius: 50%;
+            border: 2px solid var(--dark);
+        }
+        
+        .user-status.suspended {
+            background: var(--warning);
+        }
+        
+        .user-status.banned {
+            background: var(--danger);
+        }
+        
+        /* ========== البطاقات الإحصائية ========== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            padding: 20px;
+            padding-top: 90px;
+        }
+        
+        .stat-card {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            transition: all 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 25px rgba(124,58,237,0.2);
+        }
+        
+        .stat-icon {
+            font-size: 30px;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .stat-value.primary { color: var(--primary); }
+        .stat-value.success { color: var(--success); }
+        .stat-value.warning { color: var(--warning); }
+        .stat-value.info { color: var(--secondary); }
+        
+        /* ========== الأقسام ========== */
+        .section {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            margin: 15px;
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(124, 58, 237, 0.3);
+        }
+        
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            color: var(--primary);
+            font-size: 18px;
+            border-bottom: 1px solid rgba(124,58,237,0.2);
+            padding-bottom: 15px;
+        }
+        
+        /* ========== نظام الإحالة ========== */
+        .referral-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .referral-stat-card {
+            background: rgba(124, 58, 237, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(124, 58, 237, 0.3);
+        }
+        
+        .referral-stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--purple);
+            margin-bottom: 5px;
+        }
+        
+        .referral-code-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 18px;
+            border-radius: 12px;
+            margin: 15px 0;
+            border: 2px solid var(--primary);
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 4px;
+            color: var(--primary);
+            font-family: 'Courier New', monospace;
+            direction: ltr;
+        }
+        
+        /* ========== المهام ========== */
+        .tasks-list {
+            display: grid;
+            gap: 12px;
+        }
+        
+        .task-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 12px;
+            border: 1px solid rgba(124, 58, 237, 0.1);
+            transition: all 0.3s;
+            border-right: 4px solid var(--info);
+        }
+        
+        .task-item:hover {
+            border-color: var(--primary);
+            background: rgba(124, 58, 237, 0.05);
+        }
+        
+        .task-item.completed {
+            opacity: 0.7;
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--success);
+        }
+        
+        .task-reward {
+            font-weight: bold;
+            color: var(--success);
+            font-size: 20px;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .badge.standard { background: #3b82f6; }
+        .badge.premium { background: #8b5cf6; }
+        .badge.vip { background: #f59e0b; }
+        
+        /* ========== المعاملات ========== */
+        .transactions-list {
+            display: grid;
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+        
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 10px;
+            border-right: 4px solid var(--success);
+        }
+        
+        .transaction-item.withdrawal {
+            border-right-color: var(--danger);
+        }
+        
+        .transaction-item.referral {
+            border-right-color: var(--purple);
+        }
+        
+        /* ========== الشريط السفلي ========== */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            border-top: 2px solid var(--primary);
+            z-index: 1000;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #94a3b8;
+            transition: all 0.3s;
+            padding: 8px 16px;
+            border-radius: 12px;
+        }
+        
+        .nav-item.active {
+            color: var(--primary);
+            background: rgba(124, 58, 237, 0.15);
+            transform: translateY(-5px);
+        }
+        
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .nav-label {
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        /* ========== الأزرار ========== */
+        .btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 15px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #6d28d9);
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #0ea271);
+            color: white;
+        }
+        
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* ========== الصفحات ========== */
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* ========== النوافذ المنبثقة ========== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .modal.active {
+            display: flex;
+            animation: modalFadeIn 0.3s;
+        }
+        
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .modal-content {
+            background: var(--dark);
+            border-radius: 20px;
+            padding: 30px;
+            width: 100%;
+            max-width: 450px;
+            border: 2px solid var(--primary);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        
+        /* ========== الباقة الحالية ========== */
+        .current-package {
+            background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(6,182,212,0.15));
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--primary);
+        }
+        
+        /* ========== النماذج ========== */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(124,58,237,0.3);
+            border-radius: 10px;
+            color: white;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(124,58,237,0.1);
+        }
+        
+        /* ========== شبكات المحفظة ========== */
+        .network-selector {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .network-btn {
+            flex: 1;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(124,58,237,0.3);
+            border-radius: 8px;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .network-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        /* ========== الإشعارات ========== */
+        .notification {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 10px;
+            display: none;
+            z-index: 3000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border-right: 6px solid white;
+            min-width: 300px;
+            animation: slideIn 0.3s;
+        }
+        
+        .notification.error {
+            background: var(--danger);
+        }
+        
+        .notification.warning {
+            background: var(--warning);
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .status-pending {
+            color: var(--warning);
+            background: rgba(245,158,11,0.1);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .referral-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .section {
+                margin: 10px;
+                padding: 15px;
+            }
+            
+            .task-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .task-reward {
+                align-self: flex-end;
+            }
+            
+            .notification {
+                right: 10px;
+                left: 10px;
+                min-width: auto;
+            }
+            
+            .referral-code-box {
+                font-size: 18px;
+                letter-spacing: 2px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .referral-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .stat-value {
+                font-size: 24px;
+            }
+        }
+        
+        .text-center { text-align: center; }
+        .w-100 { width: 100%; }
+        .mt-3 { margin-top: 15px; }
+        .mt-4 { margin-top: 20px; }
+        .mb-3 { margin-bottom: 15px; }
+        .mb-4 { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <!-- ========== شاشة التحميل ========== -->
+    <div id="dashboardLoader" class="dashboard-loader">
+        <div class="loader-spinner"></div>
+        <div class="loader-text">جاري تحميل بياناتك...</div>
+        <div class="loader-subtext">Elite Investors</div>
+    </div>
+    
+    <!-- ========== شاشة تسجيل الدخول المطلوب ========== -->
+    <div id="authRequired" class="auth-required" style="display: none;">
+        <div class="auth-icon">
+            <i class="fas fa-user-lock"></i>
+        </div>
+        <div class="auth-title">🔐 تسجيل الدخول مطلوب</div>
+        <div class="auth-message">
+            عذراً، يجب عليك تسجيل الدخول أولاً للوصول إلى لوحة التحكم.<br>
+            يرجى تسجيل الدخول أو إنشاء حساب جديد.
+        </div>
+        <a href="index.html" class="auth-btn">
+            <i class="fas fa-sign-in-alt"></i>
+            الذهاب إلى صفحة تسجيل الدخول
+        </a>
+    </div>
+    
+    <!-- ========== المحتوى الرئيسي ========== -->
+    <div id="mainContent" style="display: none;">
+        <!-- الهيدر -->
+        <div class="dashboard-header">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">م</div>
+                <div>
+                    <h3 id="userName">جاري التحميل...</h3>
+                    <small id="userEmail" style="color: #94a3b8;">...</small>
+                    <span id="userStatusBadge" class="user-status" style="display: none;"></span>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> خروج
+            </button>
+        </div>
+
+        <!-- الصفحة الرئيسية -->
+        <div id="home-page" class="page active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <div class="stat-value primary" id="balance">0$</div>
+                    <p>الرصيد الحالي</p>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div class="stat-value success" id="today-profit">0$</div>
+                    <p>أرباح اليوم</p>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <div class="stat-value warning" id="tasks-completed">0/0</div>
+                    <p>مهام مكتملة</p>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-value info" id="total-earned">0$</div>
+                    <p>إجمالي الأرباح</p>
+                </div>
+            </div>
+
+            <div id="pendingRequestSection" style="display: none;"></div>
+
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-bolt" style="color: var(--warning);"></i>
+                    <h3>مهام اليوم السريعة</h3>
+                </div>
+                <div id="quickTasks" class="tasks-list"></div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-crown" style="color: var(--primary);"></i>
+                    <h3>باقتك الحالية</h3>
+                </div>
+                <div class="current-package" id="currentPackage">
+                    <p style="text-align: center; color: #94a3b8;">لا يوجد باقة نشطة</p>
+                </div>
+                <button class="btn btn-primary w-100 mt-4" onclick="goToPackages()">
+                    <i class="fas fa-plus-circle"></i> شراء باقة جديدة
+                </button>
+            </div>
+        </div>
+
+        <!-- صفحة المهام -->
+        <div id="tasks-page" class="page">
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-tasks" style="color: var(--success);"></i>
+                    <h3>المهام المتاحة</h3>
+                    <div style="margin-right: auto;">
+                        <button class="btn btn-sm btn-primary" onclick="loadUserTasks()">
+                            <i class="fas fa-sync-alt"></i> تحديث
+                        </button>
+                    </div>
+                </div>
+                <div id="tasksContainer" class="tasks-list"></div>
+            </div>
+        </div>
+
+        <!-- صفحة الإحالة -->
+        <div id="referral-page" class="page">
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-user-friends" style="color: var(--purple);"></i>
+                    <h3>نظام الإحالة</h3>
+                </div>
+                
+                <div class="referral-stats" id="referralStats"></div>
+                
+                <div style="margin: 25px 0;">
+                    <h4 style="color: #cbd5e1; margin-bottom: 15px; text-align: center;">
+                        <i class="fas fa-gift"></i> كود الإحالة الخاص بك
+                    </h4>
+                    <div class="referral-code-box" id="referralCodeDisplay"></div>
+                    <button class="btn btn-primary w-100 mt-2" onclick="copyReferralCode()">
+                        <i class="fas fa-copy"></i> نسخ كود الإحالة
+                    </button>
+                </div>
+                
+                <div style="margin: 25px 0;">
+                    <h4 style="color: #cbd5e1; margin-bottom: 15px; text-align: center;">
+                        <i class="fas fa-link"></i> رابط الإحالة
+                    </h4>
+                    <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; word-break: break-all; font-size: 14px; direction: ltr; text-align: left;" id="referralLinkDisplay"></div>
+                    <button class="btn btn-success w-100 mt-2" onclick="copyReferralLink()">
+                        <i class="fas fa-copy"></i> نسخ رابط الإحالة
+                    </button>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <h4 style="color: var(--primary); margin-bottom: 15px; text-align: center;">
+                        <i class="fas fa-users"></i> قائمة المحالين
+                    </h4>
+                    <div id="referredUsersList" style="max-height: 350px; overflow-y: auto; padding: 5px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- صفحة السجل -->
+        <div id="history-page" class="page">
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-history" style="color: var(--secondary);"></i>
+                    <h3>سجل المعاملات</h3>
+                </div>
+                <div class="transactions-list" id="transactionsList"></div>
+            </div>
+        </div>
+
+        <!-- صفحة حسابي -->
+        <div id="profile-page" class="page">
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-user-cog" style="color: var(--primary);"></i>
+                    <h3>معلومات الحساب</h3>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <div class="form-group">
+                        <label>👤 الاسم الكامل</label>
+                        <input type="text" class="form-control" id="profileName" placeholder="أدخل اسمك الكامل">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>📧 البريد الإلكتروني</label>
+                        <input type="email" class="form-control" id="profileEmail" placeholder="أدخل بريدك الإلكتروني" readonly>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>📱 رقم الهاتف</label>
+                        <input type="tel" class="form-control" id="profilePhone" placeholder="أدخل رقم هاتفك">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>💳 عنوان محفظة USDT</label>
+                        <input type="text" class="form-control" id="walletAddress" placeholder="أدخل عنوان محفظتك (TRC20)">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>🌐 شبكة المحفظة</label>
+                        <select class="form-control" id="walletNetwork">
+                            <option value="TRC20">TRC20</option>
+                            <option value="ERC20">ERC20</option>
+                            <option value="BEP20">BEP20</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn btn-primary w-100" onclick="saveProfile()">
+                        <i class="fas fa-save"></i> حفظ التغييرات
+                    </button>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-wallet" style="color: var(--success);"></i>
+                    <h3>طلبات السحب</h3>
+                </div>
+                
+                <div style="background: rgba(16,185,129,0.1); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>💰 الرصيد القابل للسحب</span>
+                        <span style="font-size: 22px; font-weight: bold; color: var(--success);" id="withdrawableBalance">0$</span>
+                    </div>
+                    <small style="color: #94a3b8;">الحد الأدنى للسحب: 50$</small>
+                </div>
+                
+                <button class="btn btn-success w-100" onclick="showWithdrawalModal()">
+                    <i class="fas fa-money-bill-wave"></i> طلب سحب جديد
+                </button>
+                
+                <div id="withdrawalsList" style="margin-top: 25px;"></div>
+            </div>
+        </div>
+
+        <!-- الشريط السفلي -->
+        <div class="bottom-nav">
+            <a href="#" class="nav-item active" onclick="showPage('home'); event.preventDefault();">
+                <i class="fas fa-home nav-icon"></i>
+                <span class="nav-label">الرئيسية</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showPage('tasks'); event.preventDefault();">
+                <i class="fas fa-tasks nav-icon"></i>
+                <span class="nav-label">المهام</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showPage('referral'); event.preventDefault();">
+                <i class="fas fa-user-friends nav-icon"></i>
+                <span class="nav-label">الإحالة</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showPage('history'); event.preventDefault();">
+                <i class="fas fa-history nav-icon"></i>
+                <span class="nav-label">السجل</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showPage('profile'); event.preventDefault();">
+                <i class="fas fa-user nav-icon"></i>
+                <span class="nav-label">حسابي</span>
+            </a>
+        </div>
+
+        <!-- نافذة السحب -->
+        <div class="modal" id="withdrawalModal">
+            <div class="modal-content">
+                <h3 style="text-align: center; margin-bottom: 25px;">
+                    <i class="fas fa-money-bill-wave" style="color: var(--success);"></i>
+                    طلب سحب رصيد
+                </h3>
+                
+                <div class="form-group">
+                    <label>💰 المبلغ المطلوب سحبه ($) *</label>
+                    <input type="number" id="withdrawAmount" class="form-control" placeholder="أدخل المبلغ" min="50" step="10">
+                    <small style="color: #94a3b8;">الحد الأدنى: 50$</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>💳 عنوان محفظة USDT *</label>
+                    <input type="text" id="withdrawWallet" class="form-control" placeholder="أدخل عنوان محفظتك">
+                </div>
+                
+                <div class="form-group">
+                    <label>🌐 شبكة المحفظة *</label>
+                    <div class="network-selector">
+                        <button type="button" class="network-btn active" data-network="TRC20" onclick="selectWithdrawalNetwork('TRC20')">TRC20</button>
+                        <button type="button" class="network-btn" data-network="ERC20" onclick="selectWithdrawalNetwork('ERC20')">ERC20</button>
+                        <button type="button" class="network-btn" data-network="BEP20" onclick="selectWithdrawalNetwork('BEP20')">BEP20</button>
+                    </div>
+                    <small style="color: #94a3b8;" id="withdrawalFee">رسوم السحب: 5$ (TRC20)</small>
+                </div>
+                
+                <div style="background: rgba(245,158,11,0.1); padding: 15px; border-radius: 10px; margin: 20px 0;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>المبلغ المطلوب:</span>
+                        <span id="withdrawAmountDisplay">0$</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 8px;">
+                        <span>رسوم الشبكة:</span>
+                        <span id="withdrawFeeDisplay">5$</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 8px; font-weight: bold;">
+                        <span>الإجمالي المخصوم:</span>
+                        <span id="withdrawTotalDisplay">0$</span>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 15px;">
+                    <button class="btn" style="flex: 1; background: var(--danger);" onclick="closeWithdrawalModal()">إلغاء</button>
+                    <button class="btn" style="flex: 2; background: var(--success);" onclick="submitWithdrawal()">تأكيد طلب السحب</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- الإشعار -->
+        <div class="notification" id="notification"></div>
+    </div>
+
+    <script>
+        // ==================== إعداد Supabase ====================
+        const SUPABASE_URL = 'https://wabyirjjhndrwxvcrdvn.supabase.co'
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndhYnlpcmpqaG5kcnd4dmNyZHZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4OTM0OTAsImV4cCI6MjA4NjQ2OTQ5MH0.AWDpHfWQLBto-Jn8_9fO0UmPS5Da9pgX611Bl6Q6u2w'
+        
+        let supabase = null
+        let currentUser = null
+        let transactions = []
+        let withdrawals = []
+        let userTasks = []
+        let withdrawalNetwork = 'TRC20'
+        
+        const withdrawalFees = {
+            'TRC20': 5,
+            'ERC20': 15,
+            'BEP20': 3
+        }
+
+        // ========== تهيئة Supabase والتحقق من المستخدم ==========
+        async function initDashboard() {
+            console.log('🚀 بدء تشغيل لوحة التحكم...')
+            
+            try {
+                // تهيئة Supabase
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                    auth: {
+                        persistSession: true,
+                        autoRefreshToken: true,
+                        detectSessionInUrl: true
+                    }
+                })
+                
+                // التحقق من جلسة المستخدم
+                const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+                
+                if (sessionError || !session) {
+                    throw new Error('no_session')
+                }
+                
+                // الحصول على بيانات المستخدم من جدول users
+                const { data: userData, error: userError } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('id', parseInt(session.user.id))
+                    .single()
+                
+                if (userError || !userData) {
+                    throw new Error('user_not_found')
+                }
+                
+                // التحقق من حالة المستخدم
+                if (userData.status === 'banned') {
+                    showNotification('❌ حسابك محظور. يرجى التواصل مع الدعم الفني.', 'error')
+                    setTimeout(() => logout(), 3000)
+                    return
+                }
+                
+                // حفظ بيانات المستخدم
+                currentUser = {
+                    ...userData,
+                    id: parseInt(session.user.id)
+                }
+                
+                // إخفاء شاشة التحميل وإظهار المحتوى
+                document.getElementById('dashboardLoader').style.display = 'none'
+                document.getElementById('mainContent').style.display = 'block'
+                
+                // تحميل البيانات
+                await Promise.all([
+                    loadUserData(),
+                    loadTransactions(),
+                    loadWithdrawals(),
+                    loadUserTasks(),
+                    loadReferralStats()
+                ])
+                
+                // تحديث تلقائي كل 30 ثانية
+                setInterval(() => {
+                    if (currentUser) {
+                        refreshUserData()
+                    }
+                }, 30000)
+                
+            } catch (error) {
+                console.error('Dashboard initialization error:', error)
+                
+                // إظهار شاشة تسجيل الدخول المطلوب
+                document.getElementById('dashboardLoader').style.display = 'none'
+                document.getElementById('authRequired').style.display = 'flex'
+                document.getElementById('mainContent').style.display = 'none'
+            }
+        }
+
+        // ========== تحميل بيانات المستخدم ==========
+        async function loadUserData() {
+            if (!currentUser) return
+            
+            try {
+                // تحديث بيانات المستخدم من قاعدة البيانات
+                const { data, error } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('id', currentUser.id)
+                    .single()
+                
+                if (error) throw error
+                
+                currentUser = { ...currentUser, ...data }
+                
+                // تحديث الواجهة
+                document.getElementById('userAvatar').textContent = (currentUser.name || 'م').charAt(0).toUpperCase()
+                document.getElementById('userName').textContent = currentUser.name || 'مستخدم'
+                document.getElementById('userEmail').textContent = currentUser.email || ''
+                
+                // تحديث حالة المستخدم
+                const statusBadge = document.getElementById('userStatusBadge')
+                if (currentUser.status === 'suspended') {
+                    statusBadge.className = 'user-status suspended'
+                    statusBadge.style.display = 'inline-block'
+                    showNotification('⚠️ حسابك معلق مؤقتاً. بعض الخدمات غير متاحة.', 'warning')
+                } else if (currentUser.status === 'banned') {
+                    statusBadge.className = 'user-status banned'
+                    statusBadge.style.display = 'inline-block'
+                } else {
+                    statusBadge.style.display = 'none'
+                }
+                
+                // تعبئة نموذج الملف الشخصي
+                document.getElementById('profileName').value = currentUser.name || ''
+                document.getElementById('profileEmail').value = currentUser.email || ''
+                document.getElementById('profilePhone').value = currentUser.phone || ''
+                document.getElementById('walletAddress').value = currentUser.wallet_address || ''
+                document.getElementById('walletNetwork').value = currentUser.wallet_network || 'TRC20'
+                
+                updateBalance()
+                updatePackageInfo()
+                checkPendingPackage()
+                
+            } catch (error) {
+                console.error('Error loading user data:', error)
+                showNotification('❌ فشل تحميل بيانات المستخدم', 'error')
+            }
+        }
+
+        // ========== تحديث بيانات المستخدم ==========
+        async function refreshUserData() {
+            await loadUserData()
+            await loadReferralStats()
+            await loadUserTasks()
+        }
+
+        // ========== تحديث الرصيد ==========
+        function updateBalance() {
+            document.getElementById('balance').textContent = (currentUser?.balance || 0).toFixed(2) + '$'
+            document.getElementById('total-earned').textContent = (currentUser?.total_earned || 0).toFixed(2) + '$'
+            document.getElementById('withdrawableBalance').textContent = (currentUser?.balance || 0).toFixed(2) + '$'
+            
+            if (currentUser?.package) {
+                const dailyProfit = currentUser.package.daily_profit || (currentUser.package.amount * 0.025)
+                document.getElementById('today-profit').textContent = dailyProfit.toFixed(2) + '$'
+            }
+        }
+
+        // ========== تحديث معلومات الباقة ==========
+        function updatePackageInfo() {
+            const packageDiv = document.getElementById('currentPackage')
+            
+            if (currentUser?.package) {
+                const pkg = currentUser.package
+                const daysLeft = calculateDaysLeft(pkg.purchase_date, pkg.duration || 30)
+                const dailyProfit = pkg.daily_profit || (pkg.amount * 0.025)
+                
+                let badgeClass = 'standard'
+                let badgeText = 'عادية'
+                
+                if (pkg.category === 'vip') {
+                    badgeClass = 'vip'
+                    badgeText = 'VIP'
+                } else if (pkg.category === 'premium') {
+                    badgeClass = 'premium'
+                    badgeText = 'مميزة'
+                }
+                
+                packageDiv.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h4 style="color: var(--primary); margin: 0;">${pkg.name}</h4>
+                        <span class="badge ${badgeClass}">${badgeText}</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                        <div>
+                            <small style="color: #94a3b8;">الاستثمار</small>
+                            <div style="font-size: 20px; font-weight: bold; color: var(--success);">${pkg.amount}$</div>
+                        </div>
+                        <div>
+                            <small style="color: #94a3b8;">الربح اليومي</small>
+                            <div style="font-size: 20px; font-weight: bold; color: var(--warning);">${dailyProfit.toFixed(2)}$</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <small style="color: #94a3b8;">الأيام المتبقية</small>
+                        <div style="font-size: 18px; font-weight: bold; color: white;">${daysLeft} يوم</div>
+                    </div>
+                    <div style="margin-top: 15px; color: var(--success);">
+                        <i class="fas fa-check-circle"></i> نشطة
+                    </div>
+                `
+            } else {
+                packageDiv.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <i class="fas fa-box-open" style="font-size: 40px; color: #94a3b8; margin-bottom: 15px;"></i>
+                        <p style="color: #94a3b8;">لا توجد باقة نشطة</p>
+                        <small>اشترك في إحدى باقاتنا وابدأ الربح اليومي</small>
+                    </div>
+                `
+            }
+        }
+
+        // ========== التحقق من الطلبات المعلقة ==========
+        function checkPendingPackage() {
+            const pendingSection = document.getElementById('pendingRequestSection')
+            
+            if (!currentUser?.pending_package) {
+                pendingSection.style.display = 'none'
+                return
+            }
+            
+            const pending = currentUser.pending_package
+            
+            pendingSection.style.display = 'block'
+            pendingSection.className = 'section'
+            pendingSection.innerHTML = `
+                <div class="section-title">
+                    <i class="fas fa-clock" style="color: var(--warning);"></i>
+                    <h3>حالة طلب الاشتراك</h3>
+                </div>
+                <div style="background: rgba(245,158,11,0.1); padding: 20px; border-radius: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h4 style="color: var(--warning); margin: 0;">${pending.name}</h4>
+                        <span class="status-pending">
+                            <i class="fas fa-clock"></i> بانتظار المراجعة
+                        </span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 15px;">
+                        <span style="color: #94a3b8;">المبلغ:</span>
+                        <strong style="color: white;">${pending.amount}$</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+                        <span style="color: #94a3b8;">تاريخ الطلب:</span>
+                        <span style="color: white;">${new Date(pending.requested_date).toLocaleString('ar-SA')}</span>
+                    </div>
+                    <div style="margin-top: 15px; color: #94a3b8; font-size: 14px;">
+                        <i class="fas fa-info-circle"></i> سيتم تفعيل باقتك خلال ${pending.estimated_activation || '3-6 ساعات'}
+                    </div>
+                </div>
+            `
+        }
+
+        // ========== نظام المهام ==========
+        async function loadUserTasks() {
+            if (!currentUser) return
+            
+            if (!currentUser.package) {
+                userTasks = []
+                displayUserTasks()
+                displayQuickTasks()
+                updateTasksStats()
+                return
+            }
+            
+            try {
+                const { data, error } = await supabase
+                    .from('tasks')
+                    .select('*')
+                    .eq('status', 'active')
+                
+                if (error) throw error
+                
+                // تصفية المهام حسب باقة المستخدم
+                const userCategory = currentUser.package.category
+                userTasks = (data || []).filter(task => 
+                    task.package_categories && task.package_categories.includes(userCategory)
+                )
+                
+                const today = new Date().toDateString()
+                userTasks.sort((a, b) => {
+                    const aCompleted = localStorage.getItem(`task_${a.id}_${today}`)
+                    const bCompleted = localStorage.getItem(`task_${b.id}_${today}`)
+                    if (aCompleted && !bCompleted) return 1
+                    if (!aCompleted && bCompleted) return -1
+                    return 0
+                })
+                
+                displayUserTasks()
+                displayQuickTasks()
+                updateTasksStats()
+                
+            } catch (error) {
+                console.error('Error loading tasks:', error)
+                showNotification('❌ فشل تحميل المهام', 'error')
+            }
+        }
+
+        function displayQuickTasks() {
+            const container = document.getElementById('quickTasks')
+            if (!container) return
+            
+            if (!currentUser?.package) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 30px; background: rgba(245,158,11,0.1); border-radius: 12px;">
+                        <i class="fas fa-crown" style="font-size: 40px; color: var(--warning); margin-bottom: 15px;"></i>
+                        <h4 style="color: var(--warning); margin-bottom: 10px;">لا توجد باقة نشطة</h4>
+                        <p style="color: #94a3b8; margin-bottom: 15px;">اشترك في إحدى باقاتنا لبدء المهام اليومية</p>
+                        <button class="btn btn-primary" onclick="goToPackages()">
+                            <i class="fas fa-plus-circle"></i> اشترك الآن
+                        </button>
+                    </div>
+                `
+                return
+            }
+            
+            if (userTasks.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 30px; background: rgba(16,185,129,0.1); border-radius: 12px;">
+                        <i class="fas fa-check-circle" style="font-size: 40px; color: var(--success); margin-bottom: 15px;"></i>
+                        <h4 style="color: var(--success); margin-bottom: 10px;">لا توجد مهام متاحة حالياً</h4>
+                        <p style="color: #94a3b8;">سيتم إضافة مهام جديدة قريباً لباقتك</p>
+                    </div>
+                `
+                return
+            }
+            
+            const today = new Date().toDateString()
+            const availableTasks = userTasks
+                .filter(task => !localStorage.getItem(`task_${task.id}_${today}`))
+                .slice(0, 2)
+            
+            if (availableTasks.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 20px; background: rgba(16,185,129,0.1); border-radius: 10px;">
+                        <i class="fas fa-check-circle" style="color: var(--success); font-size: 24px; margin-bottom: 10px;"></i>
+                        <p style="color: #94a3b8;">أكملت جميع مهام اليوم! 🎉</p>
+                    </div>
+                `
+                return
+            }
+            
+            let html = ''
+            availableTasks.forEach(task => {
+                let badgeClass = 'standard'
+                let badgeText = 'عادية'
+                
+                if (task.package_categories?.includes('vip')) {
+                    badgeClass = 'vip'
+                    badgeText = 'VIP'
+                } else if (task.package_categories?.includes('premium')) {
+                    badgeClass = 'premium'
+                    badgeText = 'مميزة'
+                }
+                
+                html += `
+                    <div class="task-item" style="border-right-color: ${badgeClass === 'vip' ? 'var(--warning)' : badgeClass === 'premium' ? 'var(--primary)' : 'var(--info)'};">
+                        <div style="flex: 1;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
+                                <h4 style="margin: 0; font-size: 16px;">${task.title}</h4>
+                                <span class="badge ${badgeClass}">${badgeText}</span>
+                            </div>
+                            <p style="color: #94a3b8; font-size: 13px; margin: 0;">${task.description.substring(0, 60)}...</p>
+                        </div>
+                        <button class="btn btn-success btn-sm" onclick="completeTask(${task.id}, ${task.reward})">
+                            +${task.reward}$
+                        </button>
+                    </div>
+                `
+            })
+            
+            container.innerHTML = html
+        }
+
+        function displayUserTasks() {
+            const container = document.getElementById('tasksContainer')
+            if (!container) return
+            
+            if (!currentUser?.package) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 60px; background: rgba(245,158,11,0.1); border-radius: 15px;">
+                        <i class="fas fa-crown" style="font-size: 60px; color: var(--warning); margin-bottom: 20px;"></i>
+                        <h3 style="color: var(--warning); margin-bottom: 15px;">لا توجد باقة نشطة</h3>
+                        <p style="color: #94a3b8; margin-bottom: 20px;">المهام متاحة فقط للمشتركين في الباقات</p>
+                        <button class="btn btn-primary" onclick="goToPackages()">
+                            <i class="fas fa-plus-circle"></i> اشترك الآن
+                        </button>
+                    </div>
+                `
+                return
+            }
+            
+            if (userTasks.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 50px; background: rgba(16,185,129,0.1); border-radius: 15px;">
+                        <i class="fas fa-tasks" style="font-size: 50px; color: var(--success); margin-bottom: 20px;"></i>
+                        <h3 style="color: var(--success); margin-bottom: 10px;">لا توجد مهام متاحة</h3>
+                        <p style="color: #94a3b8;">باقتك (${currentUser.package.name}) لا تتوفر لها مهام حالياً</p>
+                        <p style="color: #94a3b8; margin-top: 10px;">سيتم إضافة مهام جديدة قريباً</p>
+                    </div>
+                `
+                return
+            }
+            
+            const today = new Date().toDateString()
+            let html = ''
+            
+            let packageBadgeClass = 'standard'
+            let packageBadgeText = 'عادية'
+            
+            if (currentUser.package.category === 'vip') {
+                packageBadgeClass = 'vip'
+                packageBadgeText = 'VIP'
+            } else if (currentUser.package.category === 'premium') {
+                packageBadgeClass = 'premium'
+                packageBadgeText = 'مميزة'
+            }
+            
+            html += `
+                <div style="background: linear-gradient(135deg, rgba(124,58,237,0.1), rgba(6,182,212,0.1)); padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span style="color: #94a3b8;">باقتك الحالية:</span>
+                        <strong style="color: var(--primary); margin-right: 10px;">${currentUser.package.name}</strong>
+                        <span class="badge ${packageBadgeClass}">${packageBadgeText}</span>
+                    </div>
+                    <div>
+                        <span style="color: #94a3b8;">إجمالي المهام:</span>
+                        <strong style="color: white; margin-right: 5px;">${userTasks.length}</strong>
+                    </div>
+                </div>
+            `
+            
+            userTasks.forEach(task => {
+                const completedToday = localStorage.getItem(`task_${task.id}_${today}`)
+                
+                let badgeClass = 'standard'
+                let badgeText = 'عادية'
+                let borderColor = 'var(--info)'
+                
+                if (task.package_categories?.includes('vip')) {
+                    badgeClass = 'vip'
+                    badgeText = 'VIP'
+                    borderColor = 'var(--warning)'
+                } else if (task.package_categories?.includes('premium')) {
+                    badgeClass = 'premium'
+                    badgeText = 'مميزة'
+                    borderColor = 'var(--primary)'
+                }
+                
+                let difficultyColor = 'var(--success)'
+                let difficultyText = 'سهلة'
+                
+                if (task.difficulty === 'medium') {
+                    difficultyColor = 'var(--warning)'
+                    difficultyText = 'متوسطة'
+                } else if (task.difficulty === 'hard') {
+                    difficultyColor = 'var(--danger)'
+                    difficultyText = 'صعبة'
+                }
+                
+                html += `
+                    <div class="task-item ${completedToday ? 'completed' : ''}" style="border-right-color: ${borderColor};">
+                        <div style="flex: 1;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap;">
+                                <h4 style="margin: 0; font-size: 18px;">${task.title}</h4>
+                                <span class="badge ${badgeClass}">${badgeText}</span>
+                                <span class="badge" style="background: ${difficultyColor};">${difficultyText}</span>
+                            </div>
+                            <p style="color: #94a3b8; margin-bottom: 8px; font-size: 14px;">${task.description}</p>
+                            <div style="display: flex; gap: 15px; font-size: 13px; color: #64748b;">
+                                <span><i class="fas fa-clock"></i> ${task.time_required || 2} دقيقة</span>
+                                <span><i class="fas fa-redo"></i> ${task.type === 'daily' ? 'يومية' : 'أسبوعية'}</span>
+                                <span><i class="fas fa-check-circle"></i> ${task.completions || 0} إكمال</span>
+                            </div>
+                        </div>
+                        <div style="text-align: left; min-width: 120px;">
+                            <div class="task-reward" style="font-size: 22px; margin-bottom: 10px;">
+                                +${task.reward}$
+                            </div>
+                            <button class="btn ${completedToday ? 'btn-secondary' : 'btn-success'} btn-sm w-100" 
+                                    onclick="completeTask(${task.id}, ${task.reward})"
+                                    ${completedToday ? 'disabled' : ''}>
+                                ${completedToday ? '✓ مكتملة' : 'إكمال المهمة'}
+                            </button>
+                        </div>
+                    </div>
+                `
+            })
+            
+            container.innerHTML = html
+        }
+
+        function updateTasksStats() {
+            if (!currentUser?.package) {
+                document.getElementById('tasks-completed').textContent = '0/0'
+                return
+            }
+            
+            const today = new Date().toDateString()
+            let completedCount = 0
+            
+            userTasks.forEach(task => {
+                if (localStorage.getItem(`task_${task.id}_${today}`)) {
+                    completedCount++
+                }
+            })
+            
+            document.getElementById('tasks-completed').textContent = `${completedCount}/${userTasks.length}`
+        }
+
+        async function completeTask(taskId, reward) {
+            if (!currentUser) {
+                showNotification('❌ يجب تسجيل الدخول أولاً', 'error')
+                return
+            }
+            
+            if (!currentUser.package) {
+                showNotification('❌ لا يمكن إكمال المهام بدون باقة نشطة', 'error')
+                return
+            }
+            
+            const task = userTasks.find(t => t.id === taskId)
+            if (!task) {
+                showNotification('❌ المهمة غير موجودة', 'error')
+                return
+            }
+            
+            const today = new Date().toDateString()
+            if (localStorage.getItem(`task_${task.id}_${today}`)) {
+                showNotification('⚠️ لقد أكملت هذه المهمة اليوم بالفعل', 'warning')
+                return
+            }
+            
+            try {
+                // تحديث رصيد المستخدم
+                const newBalance = (currentUser.balance || 0) + reward
+                const newTotalEarned = (currentUser.total_earned || 0) + reward
+                
+                const { error: updateError } = await supabase
+                    .from('users')
+                    .update({
+                        balance: newBalance,
+                        total_earned: newTotalEarned,
+                        tasks_completed: (currentUser.tasks_completed || 0) + 1,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', currentUser.id)
+                
+                if (updateError) throw updateError
+                
+                // تحديث عدد إكمالات المهمة
+                const { error: taskError } = await supabase
+                    .from('tasks')
+                    .update({
+                        completions: (task.completions || 0) + 1,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', taskId)
+                
+                if (taskError) throw taskError
+                
+                // حفظ الإكمال في localStorage
+                localStorage.setItem(`task_${task.id}_${today}`, 'completed')
+                
+                // تحديث بيانات المستخدم المحلية
+                currentUser.balance = newBalance
+                currentUser.total_earned = newTotalEarned
+                currentUser.tasks_completed = (currentUser.tasks_completed || 0) + 1
+                
+                // إضافة معاملة
+                await addTransaction({
+                    type: 'ربح',
+                    amount: reward,
+                    description: `إكمال مهمة: ${task.title}`,
+                    date: new Date().toISOString()
+                })
+                
+                // تحديث الواجهة
+                updateBalance()
+                await loadUserTasks()
+                
+                showNotification(`✅ مبروك! لقد ربحت ${reward}$`, 'success')
+                
+            } catch (error) {
+                console.error('Error completing task:', error)
+                showNotification('❌ فشل إكمال المهمة', 'error')
+            }
+        }
+
+        // ========== نظام الإحالة ==========
+        async function loadReferralStats() {
+            if (!currentUser) return
+            
+            try {
+                // الحصول على كود الإحالة
+                let referralCode = currentUser.referral_code
+                
+                if (!referralCode) {
+                    referralCode = generateReferralCode(currentUser.username || currentUser.email)
+                    
+                    const { error } = await supabase
+                        .from('users')
+                        .update({ referral_code: referralCode })
+                        .eq('id', currentUser.id)
+                    
+                    if (error) throw error
+                    
+                    currentUser.referral_code = referralCode
+                }
+                
+                // الحصول على المحالين
+                const { data: referredUsers, error: referredError } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('referred_by', referralCode)
+                
+                if (referredError) throw referredError
+                
+                const activeReferrals = (referredUsers || []).filter(u => u.package).length
+                const pendingReferrals = (referredUsers || []).filter(u => u.pending_package && !u.package).length
+                
+                displayReferralStats({
+                    referredCount: referredUsers?.length || 0,
+                    activeReferrals,
+                    pendingReferrals,
+                    totalEarned: currentUser.referral_earnings || 0,
+                    referralCode
+                })
+                
+                displayReferralCode(referralCode)
+                displayReferredUsers(referredUsers || [])
+                
+            } catch (error) {
+                console.error('Error loading referral stats:', error)
+            }
+        }
+
+        function generateReferralCode(username) {
+            if (!username) username = 'USER'
+            const cleanUsername = username.toString().toUpperCase().replace(/\s/g, '').substring(0, 5)
+            const random = Math.random().toString(36).substring(2, 7).toUpperCase()
+            const timestamp = Date.now().toString().slice(-4)
+            return `${cleanUsername}${random}${timestamp}`.substring(0, 12)
+        }
+
+        function displayReferralStats(stats) {
+            const container = document.getElementById('referralStats')
+            if (!container) return
+            
+            container.innerHTML = `
+                <div class="referral-stat-card">
+                    <div class="referral-stat-value">${stats.referredCount || 0}</div>
+                    <div style="color: #94a3b8;">إجمالي المحالين</div>
+                </div>
+                <div class="referral-stat-card">
+                    <div class="referral-stat-value" style="color: var(--success);">${stats.activeReferrals || 0}</div>
+                    <div style="color: #94a3b8;">مشتركين نشطين</div>
+                </div>
+                <div class="referral-stat-card">
+                    <div class="referral-stat-value" style="color: var(--warning);">${stats.pendingReferrals || 0}</div>
+                    <div style="color: #94a3b8;">بانتظار الباقة</div>
+                </div>
+                <div class="referral-stat-card">
+                    <div class="referral-stat-value" style="color: var(--success);">${(stats.totalEarned || 0).toFixed(2)}$</div>
+                    <div style="color: #94a3b8;">أرباح الإحالة</div>
+                </div>
+            `
+        }
+
+        function displayReferralCode(code) {
+            const codeDisplay = document.getElementById('referralCodeDisplay')
+            if (codeDisplay) {
+                codeDisplay.textContent = code || ''
+            }
+            
+            const linkDisplay = document.getElementById('referralLinkDisplay')
+            if (linkDisplay) {
+                const link = window.location.origin + '/index.html?ref=' + code
+                linkDisplay.textContent = link
+            }
+        }
+
+        function displayReferredUsers(users) {
+            const usersList = document.getElementById('referredUsersList')
+            if (!usersList) return
+            
+            if (users.length > 0) {
+                let html = ''
+                users.forEach(user => {
+                    const joinDate = user.joined_date ? new Date(user.joined_date).toLocaleDateString('ar-SA') : '-'
+                    const rewardStatus = user.referral_reward_paid ? 
+                        '<span style="color: var(--success);"><i class="fas fa-check-circle"></i> تم صرف 20$</span>' : 
+                        '<span style="color: var(--warning);"><i class="fas fa-clock"></i> بانتظار الباقة</span>'
+                    
+                    html += `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(255,255,255,0.03); margin-bottom: 10px; border-radius: 10px;">
+                            <div>
+                                <strong>${user.name || 'غير معروف'}</strong><br>
+                                <small style="color: #94a3b8;">${joinDate}</small>
+                            </div>
+                            <div style="text-align: left;">
+                                <span class="badge" style="background: ${user.package ? 'var(--success)' : 'var(--warning)'};">
+                                    ${user.package ? 'مشترك' : 'بانتظار'}
+                                </span>
+                                <div style="margin-top: 5px; font-size: 12px;">${rewardStatus}</div>
+                            </div>
+                        </div>
+                    `
+                })
+                usersList.innerHTML = html
+            } else {
+                usersList.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #94a3b8;">
+                        <i class="fas fa-user-friends" style="font-size: 48px; margin-bottom: 15px;"></i>
+                        <p>لم تقم بإحالة أي مستخدم بعد</p>
+                        <small>شارك رابط الإحالة مع أصدقائك لبدء الربح</small>
+                    </div>
+                `
+            }
+        }
+
+        function copyReferralCode() {
+            const code = document.getElementById('referralCodeDisplay')?.textContent
+            if (code) {
+                navigator.clipboard.writeText(code).then(() => {
+                    showNotification('✅ تم نسخ كود الإحالة')
+                }).catch(() => {
+                    showNotification('❌ حدث خطأ في النسخ', 'error')
+                })
+            }
+        }
+
+        function copyReferralLink() {
+            const link = document.getElementById('referralLinkDisplay')?.textContent
+            if (link) {
+                navigator.clipboard.writeText(link).then(() => {
+                    showNotification('✅ تم نسخ رابط الإحالة')
+                }).catch(() => {
+                    showNotification('❌ حدث خطأ في النسخ', 'error')
+                })
+            }
+        }
+
+        // ========== نظام المعاملات ==========
+        async function loadTransactions() {
+            if (!currentUser) return
+            
+            try {
+                const { data, error } = await supabase
+                    .from('transactions')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('date', { ascending: false })
+                    .limit(50)
+                
+                if (error) throw error
+                
+                transactions = data || []
+                displayTransactions()
+                
+            } catch (error) {
+                console.error('Error loading transactions:', error)
+            }
+        }
+
+        function displayTransactions() {
+            const list = document.getElementById('transactionsList')
+            if (!list) return
+            
+            if (transactions.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: #94a3b8; padding: 30px;">لا توجد معاملات بعد</p>'
+                return
+            }
+            
+            let html = ''
+            transactions.slice(0, 20).forEach(t => {
+                const isWithdrawal = t.type === 'سحب'
+                const isReferral = t.type === 'مكافأة إحالة'
+                
+                let borderColor = 'var(--success)'
+                let sign = '+'
+                
+                if (isWithdrawal) {
+                    borderColor = 'var(--danger)'
+                    sign = '-'
+                } else if (isReferral) {
+                    borderColor = 'var(--purple)'
+                }
+                
+                html += `
+                    <div class="transaction-item" style="border-right-color: ${borderColor};">
+                        <div>
+                            <h4 style="margin-bottom: 5px; font-size: 16px;">${t.description || t.type}</h4>
+                            <small style="color: #94a3b8;">${new Date(t.date).toLocaleString('ar-SA')}</small>
+                        </div>
+                        <span style="color: ${borderColor}; font-weight: bold; font-size: 18px;">
+                            ${sign}${(t.amount || 0).toFixed(2)}$
+                        </span>
+                    </div>
+                `
+            })
+            
+            list.innerHTML = html
+        }
+
+        async function addTransaction(transaction) {
+            if (!currentUser) return
+            
+            try {
+                const { error } = await supabase
+                    .from('transactions')
+                    .insert([{
+                        user_id: currentUser.id,
+                        ...transaction,
+                        created_at: new Date().toISOString()
+                    }])
+                
+                if (error) throw error
+                
+                await loadTransactions()
+                
+            } catch (error) {
+                console.error('Error adding transaction:', error)
+            }
+        }
+
+        // ========== نظام السحب ==========
+        async function loadWithdrawals() {
+            if (!currentUser) return
+            
+            try {
+                const { data, error } = await supabase
+                    .from('withdrawals')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('created_at', { ascending: false })
+                
+                if (error) throw error
+                
+                withdrawals = data || []
+                displayWithdrawals()
+                
+            } catch (error) {
+                console.error('Error loading withdrawals:', error)
+            }
+        }
+
+        function displayWithdrawals() {
+            const list = document.getElementById('withdrawalsList')
+            if (!list) return
+            
+            if (withdrawals.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: #94a3b8; padding: 20px;">لا توجد طلبات سحب سابقة</p>'
+                return
+            }
+            
+            let html = ''
+            withdrawals.slice(0, 5).forEach(w => {
+                const statusColor = w.status === 'مكتمل' ? 'var(--success)' : 
+                                  w.status === 'معلق' ? 'var(--warning)' : 'var(--danger)'
+                const statusText = w.status === 'مكتمل' ? '✅ مكتمل' : 
+                                 w.status === 'معلق' ? '⏳ معلق' : '❌ مرفوض'
+                
+                html += `
+                    <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 10px; margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span style="font-weight: bold;">💰 ${(w.amount || 0).toFixed(2)}$</span>
+                            <span style="color: ${statusColor};">${statusText}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <small style="color: #94a3b8;">${new Date(w.created_at).toLocaleString('ar-SA')}</small>
+                            <small style="color: #94a3b8;">${w.network || 'TRC20'}</small>
+                        </div>
+                    </div>
+                `
+            })
+            
+            list.innerHTML = html
+        }
+
+        function showWithdrawalModal() {
+            if (!currentUser) {
+                showNotification('❌ يجب تسجيل الدخول أولاً', 'error')
+                return
+            }
+            
+            if (currentUser.status === 'suspended') {
+                showNotification('⚠️ حسابك معلق. لا يمكنك طلب سحب حالياً.', 'warning')
+                return
+            }
+            
+            if (currentUser.status === 'banned') {
+                showNotification('❌ حسابك محظور. لا يمكنك طلب سحب.', 'error')
+                return
+            }
+            
+            if (!currentUser.wallet_address) {
+                showNotification('⚠️ يرجى إضافة عنوان محفظتك أولاً', 'warning')
+                showPage('profile')
+                return
+            }
+            
+            document.getElementById('withdrawWallet').value = currentUser.wallet_address
+            
+            withdrawalNetwork = currentUser.wallet_network || 'TRC20'
+            document.querySelectorAll('.network-btn').forEach(btn => {
+                btn.classList.remove('active')
+                if (btn.dataset.network === withdrawalNetwork) {
+                    btn.classList.add('active')
+                }
+            })
+            
+            document.getElementById('withdrawalFee').textContent = `رسوم السحب: ${withdrawalFees[withdrawalNetwork]}$ (${withdrawalNetwork})`
+            document.getElementById('withdrawFeeDisplay').textContent = withdrawalFees[withdrawalNetwork] + '$'
+            document.getElementById('withdrawAmountDisplay').textContent = '0$'
+            document.getElementById('withdrawTotalDisplay').textContent = '0$'
+            
+            document.getElementById('withdrawAmount').addEventListener('input', updateWithdrawalTotal)
+            document.getElementById('withdrawalModal').classList.add('active')
+        }
+
+        function updateWithdrawalTotal() {
+            const amount = parseFloat(document.getElementById('withdrawAmount').value) || 0
+            const fee = withdrawalFees[withdrawalNetwork] || 5
+            const total = amount + fee
+            
+            document.getElementById('withdrawAmountDisplay').textContent = amount.toFixed(2) + '$'
+            document.getElementById('withdrawTotalDisplay').textContent = total.toFixed(2) + '$'
+        }
+
+        function closeWithdrawalModal() {
+            document.getElementById('withdrawalModal').classList.remove('active')
+            document.getElementById('withdrawAmount').value = ''
+            document.getElementById('withdrawAmount').removeEventListener('input', updateWithdrawalTotal)
+        }
+
+        function selectWithdrawalNetwork(network) {
+            withdrawalNetwork = network
+            
+            document.querySelectorAll('.network-btn').forEach(btn => {
+                btn.classList.remove('active')
+                if (btn.dataset.network === network) {
+                    btn.classList.add('active')
+                }
+            })
+            
+            document.getElementById('withdrawalFee').textContent = `رسوم السحب: ${withdrawalFees[network]}$ (${network})`
+            document.getElementById('withdrawFeeDisplay').textContent = withdrawalFees[network] + '$'
+            
+            updateWithdrawalTotal()
+        }
+
+        async function submitWithdrawal() {
+            const amount = parseFloat(document.getElementById('withdrawAmount').value)
+            const wallet = document.getElementById('withdrawWallet').value.trim()
+            const network = withdrawalNetwork
+            const fee = withdrawalFees[network]
+            const total = amount + fee
+            
+            if (!amount || amount < 50) {
+                showNotification('❌ الحد الأدنى للسحب هو 50$', 'error')
+                return
+            }
+            
+            if (amount > (currentUser.balance || 0)) {
+                showNotification('❌ الرصيد غير كافي', 'error')
+                return
+            }
+            
+            if (!wallet) {
+                showNotification('❌ يرجى إدخال عنوان المحفظة', 'error')
+                return
+            }
+            
+            try {
+                // خصم الرصيد
+                const newBalance = (currentUser.balance || 0) - total
+                
+                const { error: balanceError } = await supabase
+                    .from('users')
+                    .update({
+                        balance: newBalance,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', currentUser.id)
+                
+                if (balanceError) throw balanceError
+                
+                // إنشاء طلب السحب
+                const { error: withdrawalError } = await supabase
+                    .from('withdrawals')
+                    .insert([{
+                        user_id: currentUser.id,
+                        amount: amount,
+                        wallet_address: wallet,
+                        network: network,
+                        fee: fee,
+                        total: total,
+                        status: 'معلق',
+                        date: new Date().toISOString(),
+                        created_at: new Date().toISOString()
+                    }])
+                
+                if (withdrawalError) throw withdrawalError
+                
+                // تحديث الرصيد المحلي
+                currentUser.balance = newBalance
+                
+                // إضافة معاملة
+                await addTransaction({
+                    type: 'سحب',
+                    amount: -total,
+                    description: `طلب سحب ${amount}$ (${fee}$ رسوم ${network})`,
+                    date: new Date().toISOString()
+                })
+                
+                // تحديث الواجهة
+                updateBalance()
+                await loadWithdrawals()
+                closeWithdrawalModal()
+                
+                showNotification(`✅ تم إرسال طلب سحب بقيمة ${amount}$`, 'success')
+                
+            } catch (error) {
+                console.error('Error submitting withdrawal:', error)
+                showNotification('❌ فشل إرسال طلب السحب', 'error')
+            }
+        }
+
+        // ========== إدارة الحساب ==========
+        async function saveProfile() {
+            const name = document.getElementById('profileName').value.trim()
+            const phone = document.getElementById('profilePhone').value.trim()
+            const wallet = document.getElementById('walletAddress').value.trim()
+            const walletNetwork = document.getElementById('walletNetwork').value
+            
+            if (!name) {
+                showNotification('❌ يرجى ملء الاسم', 'error')
+                return
+            }
+            
+            try {
+                const { error } = await supabase
+                    .from('users')
+                    .update({
+                        name: name,
+                        phone: phone,
+                        wallet_address: wallet,
+                        wallet_network: walletNetwork,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', currentUser.id)
+                
+                if (error) throw error
+                
+                // تحديث البيانات المحلية
+                currentUser.name = name
+                currentUser.phone = phone
+                currentUser.wallet_address = wallet
+                currentUser.wallet_network = walletNetwork
+                
+                // تحديث الواجهة
+                document.getElementById('userAvatar').textContent = name.charAt(0).toUpperCase()
+                document.getElementById('userName').textContent = name
+                
+                showNotification('✅ تم حفظ التغييرات', 'success')
+                
+            } catch (error) {
+                console.error('Error saving profile:', error)
+                showNotification('❌ فشل حفظ التغييرات', 'error')
+            }
+        }
+
+        // ========== دوال مساعدة ==========
+        function calculateDaysLeft(purchaseDate, duration = 30) {
+            if (!purchaseDate) return 0
+            const purchase = new Date(purchaseDate)
+            const endDate = new Date(purchase)
+            endDate.setDate(endDate.getDate() + duration)
+            const today = new Date()
+            const daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24))
+            return Math.max(0, daysLeft)
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification')
+            notification.textContent = message
+            notification.className = 'notification ' + (type || 'success')
+            notification.style.display = 'block'
+            
+            const icon = type === 'success' ? '✅' : 
+                        type === 'error' ? '❌' : 
+                        type === 'warning' ? '⚠️' : 'ℹ️'
+            notification.innerHTML = `${icon} ${message}`
+            
+            setTimeout(() => {
+                notification.style.display = 'none'
+            }, 3000)
+        }
+
+        function showPage(pageName) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active')
+            })
+            
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active')
+            })
+            
+            document.getElementById(pageName + '-page').classList.add('active')
+            event.currentTarget.classList.add('active')
+            
+            if (pageName === 'history') {
+                displayTransactions()
+            } else if (pageName === 'profile') {
+                displayWithdrawals()
+            } else if (pageName === 'tasks') {
+                loadUserTasks()
+            } else if (pageName === 'referral') {
+                loadReferralStats()
+            }
+        }
+
+        function goToPackages() {
+            window.location.href = 'index.html#packages'
+        }
+
+        async function logout() {
+            if (confirm('هل تريد تسجيل الخروج؟')) {
+                await supabase.auth.signOut()
+                localStorage.removeItem('current_user')
+                window.location.href = 'index.html'
+            }
+        }
+
+        // ========== التهيئة ==========
+        document.addEventListener('DOMContentLoaded', initDashboard)
+    </script>
+</body>
+</html>

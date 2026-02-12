@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Test Page</h1>
+    <div id="status">Testing...</div>
+    <script>
+        const SUPABASE_URL = 'https://wabyirjjhndrwxvcrdvn.supabase.co'
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndhYnlpcmpqaG5kcnd4dmNyZHZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4OTM0OTAsImV4cCI6MjA4NjQ2OTQ5MH0.AWDpHfWQLBto-Jn8_9fO0UmPS5Da9pgX611Bl6Q6u2w'
+        
+        try {
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+            document.getElementById('status').innerHTML = '✅ Supabase connected!'
+            document.getElementById('status').style.color = 'green'
+        } catch (e) {
+            document.getElementById('status').innerHTML = '❌ Error: ' + e.message
+            document.getElementById('status').style.color = 'red'
+        }
+    </script>
+</body>
+</html>
