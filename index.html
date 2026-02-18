@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite Capital - منصة الاستثمار الرقمية</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #c8a97e;
+            --primary-dark: #b38b5b;
+            --primary-light: #dac09a;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --dark: #0f172a;
+            --dark-light: #1e293b;
+            --gold: #c8a97e;
+            --gradient-gold: linear-gradient(135deg, #c8a97e, #b38b5b);
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: var(--dark);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--gold);
+            border-radius: 4px;
+        }
+
+        .navbar {
+            background: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(10px);
+            padding: 15px 30px;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--gold);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--gold);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            font-size: 28px;
+        }
+
+        .login-btn {
+            background: var(--gradient-gold);
+            color: var(--dark);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(200, 169, 126, 0.3);
+        }
+
+        .hero {
+            margin-top: 100px;
+            padding: 60px 20px;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(200,169,126,0.1), rgba(179,139,91,0.1));
+            border-radius: 40px;
+            margin: 100px 30px 40px;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: var(--gold);
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .packages-section {
+            padding: 40px 30px;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .section-title h2 {
+            font-size: 36px;
+            color: var(--gold);
+            margin-bottom: 15px;
+        }
+
+        .section-title p {
+            color: rgba(255,255,255,0.6);
+            font-size: 16px;
+        }
+
+        .packages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .package-card {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 30px;
+            border: 2px solid rgba(200,169,126,0.3);
+            transition: all 0.3s;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .package-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--gold);
+            box-shadow: 0 20px 40px rgba(200,169,126,0.2);
+        }
+
+        .package-card.vip {
+            border-color: var(--gold);
+            background: rgba(200,169,126,0.1);
+        }
+
+        .package-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--gold);
+            color: var(--dark);
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .package-icon {
+            font-size: 50px;
+            color: var(--gold);
+            margin-bottom: 20px;
+        }
+
+        .package-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 10px;
+        }
+
+        .package-price {
+            font-size: 40px;
+            font-weight: 900;
+            color: var(--success);
+            margin-bottom: 20px;
+        }
+
+        .package-price small {
+            font-size: 14px;
+            color: rgba(255,255,255,0.5);
+        }
+
+        .package-features {
+            list-style: none;
+            margin: 20px 0;
+        }
+
+        .package-features li {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .package-features li i {
+            color: var(--success);
+        }
+
+        .package-btn {
+            background: var(--gradient-gold);
+            color: var(--dark);
+            border: none;
+            padding: 15px;
+            border-radius: 50px;
+            font-weight: 700;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+
+        .package-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(200,169,126,0.3);
+        }
+
+        .features-section {
+            padding: 60px 30px;
+            background: rgba(30,41,59,0.3);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .feature-item {
+            text-align: center;
+            padding: 30px;
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(200,169,126,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 32px;
+            color: var(--gold);
+        }
+
+        .feature-item h3 {
+            font-size: 20px;
+            color: var(--gold);
+            margin-bottom: 10px;
+        }
+
+        .feature-item p {
+            color: rgba(255,255,255,0.6);
+            font-size: 14px;
+        }
+
+        .auth-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .auth-modal.active {
+            display: flex;
+        }
+
+        .auth-container {
+            background: var(--dark-light);
+            border-radius: 40px;
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            border: 2px solid var(--gold);
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            background: rgba(255,255,255,0.05);
+            padding: 5px;
+            border-radius: 60px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            border-radius: 60px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .auth-tab.active {
+            background: var(--gold);
+            color: var(--dark);
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: rgba(255,255,255,0.7);
+            font-size: 14px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(200,169,126,0.3);
+            border-radius: 30px;
+            color: white;
+            font-size: 16px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: var(--gradient-gold);
+            color: var(--dark);
+            border: none;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(200,169,126,0.3);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+        }
+
+        .footer {
+            margin-top: auto;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid rgba(200,169,126,0.3);
+            color: rgba(255,255,255,0.5);
+        }
+
+        .toast {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            display: none;
+            z-index: 3000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 32px;
+            }
+            
+            .hero p {
+                font-size: 16px;
+            }
+            
+            .packages-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .auth-container {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fas fa-crown"></i>
+            ELITE CAPITAL
+        </div>
+        <button class="login-btn" onclick="showAuthModal()">
+            <i class="fas fa-user"></i>
+            دخول / تسجيل
+        </button>
+    </nav>
+
+    <section class="hero">
+        <h1 data-aos="fade-up">استثمر في مستقبلك</h1>
+        <p data-aos="fade-up" data-aos-delay="100">
+            منصة الاستثمار الرقمية الأولى في المنطقة. أرباح يومية وعوائد مضمونة
+        </p>
+    </section>
+
+    <section class="packages-section" id="packages">
+        <div class="section-title">
+            <h2>باقات الاستثمار</h2>
+            <p>اختر الباقة المناسبة لاستثمارك</p>
+        </div>
+        
+        <div class="packages-grid" id="packagesContainer">
+            <div style="text-align: center; padding: 50px;">جاري تحميل الباقات...</div>
+        </div>
+    </section>
+
+    <section class="features-section">
+        <div class="section-title">
+            <h2>لماذا تختار Elite Capital؟</h2>
+            <p>منصة موثوقة وآمنة لاستثماراتك</p>
+        </div>
+        
+        <div class="features-grid">
+            <div class="feature-item" data-aos="fade-up">
+                <div class="feature-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h3>أرباح يومية</h3>
+                <p>احصل على أرباحك بشكل يومي مباشرة في محفظتك</p>
+            </div>
+            
+            <div class="feature-item" data-aos="fade-up" data-aos-delay="100">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3>أمان تام</h3>
+                <p>منصة آمنة ومشفرة لحماية استثماراتك</p>
+            </div>
+            
+            <div class="feature-item" data-aos="fade-up" data-aos-delay="200">
+                <div class="feature-icon">
+                    <i class="fas fa-headset"></i>
+                </div>
+                <h3>دعم فني</h3>
+                <p>فريق دعم متاح على مدار الساعة لمساعدتك</p>
+            </div>
+            
+            <div class="feature-item" data-aos="fade-up" data-aos-delay="300">
+                <div class="feature-icon">
+                    <i class="fas fa-gift"></i>
+                </div>
+                <h3>مكافآت إحالة</h3>
+                <p>احصل على مكافآت عند دعوة أصدقائك</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <p>© 2024 Elite Capital - جميع الحقوق محفوظة</p>
+    </footer>
+
+    <div class="auth-modal" id="authModal">
+        <button class="close-modal" onclick="closeAuthModal()">&times;</button>
+        
+        <div class="auth-container">
+            <div class="auth-tabs">
+                <div class="auth-tab active" onclick="switchAuthTab('login')">تسجيل دخول</div>
+                <div class="auth-tab" onclick="switchAuthTab('register')">حساب جديد</div>
+            </div>
+            
+            <div class="auth-form active" id="loginForm">
+                <div class="form-group">
+                    <label>البريد الإلكتروني أو اسم المستخدم</label>
+                    <input type="text" class="form-control" id="loginUsername" placeholder="أدخل بريدك أو اسم المستخدم">
+                </div>
+                
+                <div class="form-group">
+                    <label>كلمة المرور</label>
+                    <input type="password" class="form-control" id="loginPassword" placeholder="********">
+                </div>
+                
+                <button class="submit-btn" onclick="login()">
+                    <i class="fas fa-sign-in-alt"></i>
+                    دخول
+                </button>
+            </div>
+            
+            <div class="auth-form" id="registerForm">
+                <div class="form-group">
+                    <label>الاسم الكامل</label>
+                    <input type="text" class="form-control" id="regName" placeholder="محمد أحمد">
+                </div>
+                
+                <div class="form-group">
+                    <label>اسم المستخدم</label>
+                    <input type="text" class="form-control" id="regUsername" placeholder="mohammed123">
+                </div>
+                
+                <div class="form-group">
+                    <label>البريد الإلكتروني</label>
+                    <input type="email" class="form-control" id="regEmail" placeholder="example@email.com">
+                </div>
+                
+                <div class="form-group">
+                    <label>رقم الهاتف</label>
+                    <input type="tel" class="form-control" id="regPhone" placeholder="05xxxxxxxx">
+                </div>
+                
+                <div class="form-group">
+                    <label>كلمة المرور</label>
+                    <input type="password" class="form-control" id="regPassword" placeholder="********">
+                </div>
+                
+                <div class="form-group">
+                    <label>كود الإحالة (اختياري)</label>
+                    <input type="text" class="form-control" id="regReferral" placeholder="أدخل كود الإحالة إن وجد">
+                </div>
+                
+                <button class="submit-btn" onclick="register()">
+                    <i class="fas fa-user-plus"></i>
+                    إنشاء حساب
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
+    <script>
+        AOS.init({ duration: 800, once: true });
+
+        // تحميل الباقات
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadPackages();
+        });
+
+        async function loadPackages() {
+            try {
+                const result = await window.supabaseHelpers.getAllPackages();
+                const container = document.getElementById('packagesContainer');
+                
+                if (result.success && result.data) {
+                    displayPackages(result.data);
+                } else {
+                    container.innerHTML = '<p style="text-align: center; color: #aaa;">لا توجد باقات متاحة حالياً</p>';
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل الباقات:', error);
+            }
+        }
+
+        function displayPackages(packages) {
+            const container = document.getElementById('packagesContainer');
+            
+            let html = '';
+            packages.forEach(pkg => {
+                const isVip = pkg.category === 'vip';
+                const dailyProfit = pkg.daily_profit || 0;
+                
+                let durationText = '';
+                if (pkg.duration_type === 'day') durationText = `لمدة ${pkg.duration} يوم`;
+                else if (pkg.duration_type === 'month') durationText = `لمدة ${pkg.duration} شهر`;
+                else durationText = `لمدة ${pkg.duration} سنة`;
+                
+                html += `
+                    <div class="package-card ${isVip ? 'vip' : ''}" data-aos="fade-up">
+                        ${isVip ? '<div class="package-badge">الأكثر طلباً</div>' : ''}
+                        <div class="package-icon"><i class="fas ${isVip ? 'fa-crown' : 'fa-gem'}"></i></div>
+                        <h3 class="package-name">${pkg.name}</h3>
+                        <div class="package-price">${pkg.price}$ <small>استثمار</small></div>
+                        <ul class="package-features">
+                            <li><i class="fas fa-check-circle"></i> أرباح يومية: ${dailyProfit}$</li>
+                            <li><i class="fas fa-check-circle"></i> ${durationText}</li>
+                            <li><i class="fas fa-check-circle"></i> دعم فني 24/7</li>
+                        </ul>
+                        <button class="package-btn" onclick="showAuthModal()">اشترك الآن</button>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // نوافذ التسجيل
+        function showAuthModal() {
+            document.getElementById('authModal').classList.add('active');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.remove('active');
+        }
+
+        function switchAuthTab(tab) {
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+            
+            if (tab === 'login') {
+                document.querySelectorAll('.auth-tab')[0].classList.add('active');
+                document.getElementById('loginForm').classList.add('active');
+            } else {
+                document.querySelectorAll('.auth-tab')[1].classList.add('active');
+                document.getElementById('registerForm').classList.add('active');
+            }
+        }
+
+        // تسجيل الدخول
+        async function login() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            
+            if (!username || !password) {
+                showToast('❌ جميع الحقول مطلوبة', 'error');
+                return;
+            }
+            
+            const result = await window.supabaseHelpers.loginUser(username, password);
+            
+            if (result.success && result.data) {
+                // حفظ المستخدم في مكانين لضمان عدم فقده
+                sessionStorage.setItem('current_user', JSON.stringify(result.data));
+                localStorage.setItem('current_user', JSON.stringify(result.data));
+                localStorage.setItem('user_backup', JSON.stringify(result.data));
+                
+                showToast('✅ تم تسجيل الدخول بنجاح');
+                
+                setTimeout(() => {
+                    if (result.data.is_admin) {
+                        window.location.href = 'admin.html';
+                    } else {
+                        window.location.href = 'dashboard.html';
+                    }
+                }, 500);
+            } else {
+                showToast('❌ ' + (result.error || 'فشل تسجيل الدخول'), 'error');
+            }
+        }
+
+        // تسجيل جديد
+        async function register() {
+            const name = document.getElementById('regName').value.trim();
+            const username = document.getElementById('regUsername').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const phone = document.getElementById('regPhone').value.trim();
+            const password = document.getElementById('regPassword').value.trim();
+            const referral = document.getElementById('regReferral').value.trim();
+            
+            if (!name || !username || !email || !phone || !password) {
+                showToast('❌ جميع الحقول مطلوبة', 'error');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showToast('❌ كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'error');
+                return;
+            }
+            
+            const result = await window.supabaseHelpers.registerUser({
+                name, username, email, phone, password,
+                referralCode: referral || null
+            });
+            
+            if (result.success) {
+                showToast('✅ تم إنشاء الحساب بنجاح');
+                switchAuthTab('login');
+                document.getElementById('loginUsername').value = username;
+            } else {
+                showToast('❌ ' + result.error, 'error');
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 3000);
+        }
+
+        // إغلاق النافذة عند النقر خارجها
+        window.onclick = function(event) {
+            const modal = document.getElementById('authModal');
+            if (event.target === modal) {
+                closeAuthModal();
+            }
+        }
+    </script>
+</body>
+</html>
