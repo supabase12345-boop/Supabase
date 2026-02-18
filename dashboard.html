@@ -1209,9 +1209,15 @@
                     الملف الشخصي
                 </div>
                 <div class="user-dropdown-item" onclick="window.location.href='chat.html'">
-                    <i class="fas fa-comments"></i>
-                    الدردشة المباشرة
+                    <i class="fas fa-headset"></i>
+                    الدعم الفني
                     <span class="chat-badge" id="chatBadge" style="display: none;">!</span>
+                </div>
+                <!-- إضافة رابط الدردشة الجماعية الجديد -->
+                <div class="user-dropdown-item" onclick="window.location.href='group-chat.html'">
+                    <i class="fas fa-users"></i>
+                    الدردشة الجماعية
+                    <span class="chat-badge" style="background: var(--gold);" id="groupChatBadge">جديد</span>
                 </div>
                 <div class="user-dropdown-item" onclick="copyReferralCode()">
                     <i class="fas fa-gift"></i>
@@ -1230,9 +1236,9 @@
     </nav>
 
     <!-- زر الدردشة العائم -->
-    <div class="chat-float-btn" onclick="window.location.href='chat.html'" id="chatFloatBtn">
-        <i class="fas fa-comments"></i>
-        <span class="chat-float-badge" id="chatFloatBadge" style="display: none;">1</span>
+    <div class="chat-float-btn" onclick="window.location.href='group-chat.html'" id="chatFloatBtn" title="الدردشة الجماعية">
+        <i class="fas fa-users"></i>
+        <span class="chat-float-badge" id="chatFloatBadge" style="display: none;">جديد</span>
     </div>
 
     <!-- المحتوى الرئيسي -->
