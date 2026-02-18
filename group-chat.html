@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>الدردشة الجماعية - Elite Capital</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #c8a97e;
+            --primary-dark: #b38b5b;
+            --primary-light: #dac09a;
+            --success: #27ae60;
+            --success-dark: #219a52;
+            --danger: #e74c3c;
+            --danger-dark: #c0392b;
+            --warning: #f39c12;
+            --dark: #0f172a;
+            --dark-light: #1e293b;
+            --gold: #c8a97e;
+            --gold-light: rgba(200, 169, 126, 0.2);
+            --text: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.6);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            --shadow-gold: 0 10px 30px rgba(200, 169, 126, 0.3);
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: var(--dark);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--gold);
+            border-radius: 3px;
+        }
+
+        .header {
+            background: var(--dark-light);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 2px solid var(--gold);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+        }
+
+        .back-btn {
+            width: 45px;
+            height: 45px;
+            background: rgba(200, 169, 126, 0.1);
+            border: 2px solid var(--gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gold);
+            font-size: 20px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: var(--gold);
+            color: var(--dark);
+            transform: scale(1.1);
+        }
+
+        .header h1 {
+            flex: 1;
+            font-size: 24px;
+            color: var(--gold);
+        }
+
+        .members-count {
+            background: var(--gold-light);
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-size: 14px;
+            color: var(--gold);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid var(--gold);
+        }
+
+        .members-count i {
+            font-size: 16px;
+        }
+
+        .no-subscription-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .no-subscription-message {
+            text-align: center;
+            padding: 60px 30px;
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 40px;
+            border: 2px dashed var(--gold);
+            max-width: 500px;
+            width: 100%;
+            animation: fadeInUp 0.6s;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .no-subscription-message i {
+            font-size: 100px;
+            color: var(--gold);
+            margin-bottom: 25px;
+            opacity: 0.5;
+        }
+
+        .no-subscription-message h2 {
+            color: var(--gold);
+            margin-bottom: 15px;
+            font-size: 28px;
+        }
+
+        .no-subscription-message p {
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .subscribe-btn {
+            background: linear-gradient(135deg, var(--gold), var(--primary-dark));
+            color: var(--dark);
+            border: none;
+            padding: 15px 50px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: var(--shadow-gold);
+        }
+
+        .subscribe-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(200, 169, 126, 0.4);
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 80px);
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.97), rgba(30, 41, 59, 0.97));
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .welcome-message {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(200, 169, 126, 0.1);
+            border-radius: 30px;
+            border: 1px solid var(--gold-light);
+        }
+
+        .welcome-message i {
+            color: var(--gold);
+            font-size: 30px;
+            margin-bottom: 10px;
+        }
+
+        .welcome-message p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .message-wrapper {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            max-width: 85%;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-wrapper.own-message {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, var(--gold), var(--primary-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--dark);
+            flex-shrink: 0;
+            border: 2px solid var(--gold);
+        }
+
+        .message-bubble {
+            background: rgba(30, 41, 59, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 12px 18px;
+            border: 1px solid var(--gold-light);
+            position: relative;
+        }
+
+        .own-message .message-bubble {
+            background: rgba(200, 169, 126, 0.15);
+            border-color: var(--gold);
+        }
+
+        .admin-message .message-bubble {
+            background: rgba(39, 174, 96, 0.15);
+            border-color: var(--success);
+        }
+
+        .admin-message .message-avatar {
+            background: linear-gradient(135deg, var(--success), var(--success-dark));
+            border-color: var(--success);
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .sender-name {
+            font-weight: 700;
+            color: var(--gold);
+            font-size: 14px;
+        }
+
+        .admin-badge {
+            background: var(--success);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .subscriber-badge {
+            background: var(--gold);
+            color: var(--dark);
+            padding: 3px 10px;
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .message-time {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-right: auto;
+        }
+
+        .message-text {
+            font-size: 14px;
+            line-height: 1.6;
+            word-wrap: break-word;
+        }
+
+        .message-image {
+            max-width: 250px;
+            max-height: 200px;
+            border-radius: 15px;
+            margin: 8px 0;
+            cursor: pointer;
+            border: 2px solid var(--gold-light);
+            transition: all 0.3s;
+        }
+
+        .message-image:hover {
+            transform: scale(1.02);
+            border-color: var(--gold);
+        }
+
+        .chat-input-area {
+            background: var(--dark-light);
+            border-top: 2px solid var(--gold);
+            padding: 15px 20px;
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid var(--gold-light);
+            border-radius: 30px;
+            padding: 5px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--gold);
+            background: rgba(200, 169, 126, 0.05);
+        }
+
+        .chat-input {
+            flex: 1;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 15px;
+            padding: 12px 0;
+            outline: none;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        .chat-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .chat-input:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .attach-btn {
+            background: none;
+            border: none;
+            color: var(--gold);
+            font-size: 22px;
+            cursor: pointer;
+            padding: 8px;
+            transition: all 0.3s;
+            border-radius: 50%;
+        }
+
+        .attach-btn:hover {
+            background: var(--gold-light);
+            transform: scale(1.1);
+        }
+
+        .attach-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .send-btn {
+            width: 55px;
+            height: 55px;
+            background: linear-gradient(135deg, var(--gold), var(--primary-dark));
+            border: none;
+            border-radius: 50%;
+            color: var(--dark);
+            font-size: 22px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-gold);
+        }
+
+        .send-btn:hover {
+            transform: scale(1.1) rotate(10deg);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .image-preview-container {
+            position: relative;
+            display: inline-block;
+            margin: 10px 20px;
+        }
+
+        .image-preview {
+            max-width: 150px;
+            max-height: 100px;
+            border-radius: 10px;
+            border: 2px solid var(--gold);
+        }
+
+        .remove-image {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 30px;
+            height: 30px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .remove-image:hover {
+            background: var(--danger-dark);
+            transform: scale(1.1);
+        }
+
+        .image-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .image-modal.active {
+            display: flex;
+            animation: fadeIn 0.3s;
+        }
+
+        .image-modal img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 20px;
+            border: 3px solid var(--gold);
+        }
+
+        .image-modal-close {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .toast {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--success);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            display: none;
+            z-index: 3000;
+            box-shadow: var(--shadow-gold);
+            border: 2px solid white;
+            font-weight: 600;
+            animation: slideDown 0.3s;
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -20px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 { font-size: 20px; }
+            .members-count { padding: 6px 12px; font-size: 12px; }
+            .message-wrapper { max-width: 95%; }
+            .message-image { max-width: 200px; max-height: 150px; }
+            .chat-input-area { padding: 10px; }
+            .send-btn { width: 50px; height: 50px; font-size: 20px; }
+            .no-subscription-message { padding: 40px 20px; }
+            .no-subscription-message i { font-size: 70px; }
+            .no-subscription-message h2 { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="javascript:void(0)" onclick="goBack()" class="back-btn">
+            <i class="fas fa-arrow-right"></i>
+        </a>
+        <h1>الدردشة الجماعية</h1>
+        <div class="members-count" id="membersCount">
+            <i class="fas fa-users"></i>
+            <span id="onlineCount">0</span>
+        </div>
+    </div>
+
+    <div class="no-subscription-container" id="noSubscriptionMessage" style="display: none;">
+        <div class="no-subscription-message">
+            <i class="fas fa-lock"></i>
+            <h2>دردشة حصرية للمشتركين</h2>
+            <p>هذه الدردشة متاحة فقط للأعضاء المشتركين في باقاتنا. اشترك الآن للتواصل مع المستثمرين الآخرين وفريق الدعم</p>
+            <button class="subscribe-btn" onclick="goToPackages()">
+                <i class="fas fa-crown"></i>
+                اشترك الآن
+            </button>
+        </div>
+    </div>
+
+    <div class="chat-container" id="chatContainer" style="display: none;">
+        <div class="chat-messages" id="chatMessages">
+            <div class="welcome-message">
+                <i class="fas fa-comments"></i>
+                <p>مرحباً بك في دردشة المستثمرين!</p>
+            </div>
+        </div>
+
+        <div id="imagePreviewContainer" class="image-preview-container" style="display: none;">
+            <img id="imagePreview" class="image-preview" src="" alt="معاينة">
+            <button class="remove-image" onclick="removeSelectedImage()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="chat-input-area">
+            <div class="input-wrapper">
+                <input type="text" class="chat-input" id="chatInput" placeholder="اكتب رسالتك هنا..." maxlength="500" disabled>
+                <button class="attach-btn" id="attachBtn" onclick="triggerImageUpload()" title="إرفاق صورة" disabled>
+                    <i class="fas fa-image"></i>
+                </button>
+                <input type="file" id="imageUpload" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
+            </div>
+            <button class="send-btn" id="sendButton" onclick="sendMessage()" disabled>
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="image-modal" id="imageModal" onclick="closeImageModal()">
+        <button class="image-modal-close" onclick="closeImageModal(event)">
+            <i class="fas fa-times"></i>
+        </button>
+        <img id="modalImage" src="" alt="صورة مكبرة">
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // متغيرات عامة
+        let currentUser = null;
+        let hasAccess = false;
+        let selectedImageFile = null;
+        let messageInterval = null;
+
+        // دالة لجلب المستخدم من التخزين
+        function getCurrentUser() {
+            // البحث في كل الأماكن
+            const sources = [
+                sessionStorage.getItem('current_user'),
+                localStorage.getItem('current_user'),
+                localStorage.getItem('user_backup')
+            ];
+            
+            for (let source of sources) {
+                if (source) {
+                    try {
+                        const user = JSON.parse(source);
+                        if (user && user.id) return user;
+                    } catch (e) {}
+                }
+            }
+            return null;
+        }
+
+        // حفظ المستخدم في كل الأماكن
+        function saveUser(user) {
+            if (!user) return;
+            sessionStorage.setItem('current_user', JSON.stringify(user));
+            localStorage.setItem('current_user', JSON.stringify(user));
+            localStorage.setItem('user_backup', JSON.stringify(user));
+        }
+
+        // تهيئة الصفحة
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('بدء تحميل الدردشة...');
+            
+            // استرجاع المستخدم
+            currentUser = getCurrentUser();
+            
+            if (!currentUser) {
+                console.log('لا يوجد مستخدم - توجيه للصفحة الرئيسية');
+                window.location.replace('index.html');
+                return;
+            }
+            
+            console.log('المستخدم:', currentUser.name);
+            
+            try {
+                // التحقق من صحة المستخدم في قاعدة البيانات
+                const result = await window.supabaseHelpers.getUserById(currentUser.id);
+                
+                if (result.success && result.data) {
+                    currentUser = result.data;
+                    saveUser(currentUser);
+                    
+                    // التحقق من الصلاحية (أدمن أو مشترك)
+                    if (currentUser.is_admin) {
+                        console.log('مستخدم أدمن');
+                        hasAccess = true;
+                        showChatInterface();
+                        await loadMessages();
+                        startAutoRefresh();
+                    } else {
+                        // التحقق من الاشتراك
+                        const subResult = await window.supabaseHelpers.getUserSubscription(currentUser.id);
+                        hasAccess = subResult.success && subResult.data;
+                        
+                        if (hasAccess) {
+                            console.log('مستخدم مشترك');
+                            showChatInterface();
+                            await loadMessages();
+                            startAutoRefresh();
+                        } else {
+                            console.log('مستخدم غير مشترك');
+                            showNoSubscription();
+                        }
+                    }
+                } else {
+                    console.log('المستخدم غير موجود في قاعدة البيانات');
+                    sessionStorage.clear();
+                    localStorage.removeItem('current_user');
+                    localStorage.removeItem('user_backup');
+                    window.location.replace('index.html');
+                }
+            } catch (error) {
+                console.error('خطأ:', error);
+                showToast('❌ حدث خطأ', 'error');
+            }
+        });
+
+        function showChatInterface() {
+            document.getElementById('noSubscriptionMessage').style.display = 'none';
+            document.getElementById('chatContainer').style.display = 'flex';
+            document.getElementById('chatInput').disabled = false;
+            document.getElementById('sendButton').disabled = false;
+            document.getElementById('attachBtn').disabled = false;
+            updateOnlineCount();
+        }
+
+        function showNoSubscription() {
+            document.getElementById('noSubscriptionMessage').style.display = 'flex';
+            document.getElementById('chatContainer').style.display = 'none';
+        }
+
+        // تحميل الرسائل
+        async function loadMessages() {
+            try {
+                const result = await window.supabaseHelpers.getGroupChatMessages(100);
+                
+                if (result.success && result.data) {
+                    displayMessages(result.data.reverse());
+                    scrollToBottom();
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل الرسائل:', error);
+            }
+        }
+
+        // تحديث تلقائي كل 3 ثواني
+        function startAutoRefresh() {
+            if (messageInterval) clearInterval(messageInterval);
+            messageInterval = setInterval(loadMessages, 3000);
+        }
+
+        function displayMessages(messages) {
+            const container = document.getElementById('chatMessages');
+            
+            // الاحتفاظ برسالة الترحيب
+            const welcomeMsg = container.querySelector('.welcome-message');
+            container.innerHTML = '';
+            if (welcomeMsg) container.appendChild(welcomeMsg);
+            
+            if (!messages || messages.length === 0) {
+                const emptyMsg = document.createElement('div');
+                emptyMsg.style.textAlign = 'center';
+                emptyMsg.style.padding = '20px';
+                emptyMsg.style.color = 'var(--text-muted)';
+                emptyMsg.textContent = 'لا توجد رسائل بعد...';
+                container.appendChild(emptyMsg);
+            } else {
+                messages.forEach(msg => {
+                    container.appendChild(createMessageElement(msg));
+                });
+            }
+            
+            scrollToBottom();
+        }
+
+        function createMessageElement(msg) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'message-wrapper';
+            
+            const isOwnMessage = msg.user_id === currentUser?.id;
+            const isAdmin = msg.users?.is_admin || false;
+            
+            if (isOwnMessage) wrapper.classList.add('own-message');
+            if (isAdmin) wrapper.classList.add('admin-message');
+            
+            const time = new Date(msg.created_at).toLocaleTimeString('ar-SA', {
+                hour: '2-digit', minute: '2-digit'
+            });
+            
+            const avatar = (msg.users?.name || 'مستخدم').charAt(0).toUpperCase();
+            
+            let content = '';
+            if (msg.message) {
+                content += `<div class="message-text">${escapeHtml(msg.message)}</div>`;
+            }
+            if (msg.image_url) {
+                content += `<img src="${msg.image_url}" class="message-image" onclick="openImageModal('${msg.image_url}')" alt="صورة">`;
+            }
+            
+            wrapper.innerHTML = `
+                <div class="message-avatar">${avatar}</div>
+                <div class="message-bubble">
+                    <div class="message-header">
+                        <span class="sender-name">${escapeHtml(msg.users?.name || 'مستخدم')}</span>
+                        ${isAdmin ? '<span class="admin-badge">إدارة</span>' : ''}
+                        ${!isAdmin && msg.users?.has_active_subscription ? '<span class="subscriber-badge">مشترك</span>' : ''}
+                        <span class="message-time">${time}</span>
+                    </div>
+                    ${content}
+                </div>
+            `;
+            
+            return wrapper;
+        }
+
+        // إرسال رسالة
+        async function sendMessage() {
+            if (!hasAccess && !currentUser?.is_admin) {
+                showToast('❌ يجب أن يكون لديك اشتراك نشط', 'error');
+                return;
+            }
+            
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message && !selectedImageFile) {
+                showToast('⚠️ اكتب رسالة أو اختر صورة', 'warning');
+                return;
+            }
+            
+            document.getElementById('sendButton').disabled = true;
+            
+            try {
+                const result = await window.supabaseHelpers.createGroupChat(
+                    currentUser.id,
+                    message || null,
+                    selectedImageFile
+                );
+                
+                if (result.success) {
+                    input.value = '';
+                    removeSelectedImage();
+                    await loadMessages(); // تحديث فوري
+                } else {
+                    showToast('❌ ' + (result.error || 'فشل الإرسال'), 'error');
+                }
+            } catch (error) {
+                console.error('خطأ:', error);
+                showToast('❌ حدث خطأ في الإرسال', 'error');
+            } finally {
+                document.getElementById('sendButton').disabled = false;
+            }
+        }
+
+        // دوال الصور
+        function triggerImageUpload() {
+            document.getElementById('imageUpload').click();
+        }
+
+        function handleImageSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('❌ حجم الصورة كبير جداً (الحد الأقصى 5 ميجابايت)', 'error');
+                return;
+            }
+            
+            if (!file.type.startsWith('image/')) {
+                showToast('❌ يرجى اختيار صورة فقط', 'error');
+                return;
+            }
+            
+            selectedImageFile = file;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('imagePreview').src = e.target.result;
+                document.getElementById('imagePreviewContainer').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeSelectedImage() {
+            selectedImageFile = null;
+            document.getElementById('imagePreviewContainer').style.display = 'none';
+            document.getElementById('imagePreview').src = '';
+            document.getElementById('imageUpload').value = '';
+        }
+
+        function openImageModal(url) {
+            document.getElementById('modalImage').src = url;
+            document.getElementById('imageModal').classList.add('active');
+        }
+
+        function closeImageModal(event) {
+            if (event) event.stopPropagation();
+            document.getElementById('imageModal').classList.remove('active');
+        }
+
+        // تحديث عدد المتصلين
+        async function updateOnlineCount() {
+            try {
+                const result = await window.supabaseHelpers.getGroupChatMessages(100);
+                if (result.success && result.data) {
+                    const uniqueUsers = new Set(result.data.map(m => m.user_id));
+                    document.getElementById('onlineCount').textContent = uniqueUsers.size;
+                }
+            } catch (error) {
+                console.error('خطأ في تحديث العدد:', error);
+            }
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('chatMessages');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function goToPackages() {
+            window.location.href = 'index.html#packages';
+        }
+
+        function goBack() {
+            window.location.href = 'dashboard.html';
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 3000);
+        }
+
+        // إرسال بالضغط على Enter
+        document.getElementById('chatInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // تنظيف عند الخروج
+        window.addEventListener('beforeunload', function() {
+            if (messageInterval) clearInterval(messageInterval);
+        });
+    </script>
+</body>
+</html>
